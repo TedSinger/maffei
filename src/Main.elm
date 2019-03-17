@@ -3,13 +3,13 @@ module Main exposing (Model, Msg(..), init, main, update, view)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, label, span, text, textarea)
-import Html.Attributes exposing (style, tabindex, type_, value, id)
+import Html.Attributes exposing (id, style, tabindex, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput, onMouseEnter, targetValue)
 import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
-import Keystate exposing (activeNotes, noteCfg)
-import Set exposing (Set)
+import KeyboardState exposing (activeNotes, noteCfg)
 import Notes exposing (genNoteCfg, getName)
+import Set exposing (Set)
 
 
 main =
@@ -37,10 +37,15 @@ initNoteCfg =
         |> Dict.fromList
         |> E.dict identity (E.dict identity E.float)
 
-myKeys = "azsxdcfvgb1q2w3e4r5t6hnjmk,l.;y7u8i9o0p-[=]"
-initNotesDict = List.range 0 45 
-    |> List.map (\i -> (String.slice i (i+1) myKeys, getName (i - 14)))
-    |> Dict.fromList
+
+myKeys =
+    "azsxdcfvgb1q2w3e4r5t6hnjmk,l.;y7u8i9o0p-[=]"
+
+
+initNotesDict =
+    List.range 0 45
+        |> List.map (\i -> ( String.slice i (i + 1) myKeys, getName (i - 14) ))
+        |> Dict.fromList
 
 
 init : () -> ( Model, Cmd msg )
@@ -61,37 +66,40 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg foo =
+update msg currentModel =
     case msg of
         NewLayout s ->
-            ( { foo | layout = s }, Cmd.none )
+            ( { currentModel | layout = s }, Cmd.none )
 
-        NewNote c s ->
-            ( { foo | notesDict = Dict.insert c s foo.notesDict }, Cmd.none )
+        NewNote char s ->
+            ( { currentModel | notesDict = Dict.insert char s currentModel.notesDict }, Cmd.none )
 
-        KeyDown c ->
-            if Set.member c foo.keysPressed then
-                ( foo, Cmd.none )
-
-            else
-                applyKeyPress Set.insert c foo
-
-        KeyUp c ->
-            if Set.member c foo.keysPressed then
-                applyKeyPress Set.remove c foo
+        KeyDown char ->
+            if Set.member char currentModel.keysPressed then
+                ( currentModel, Cmd.none )
 
             else
-                ( foo, Cmd.none )
+                applyKeyPress Set.insert char currentModel
+
+        KeyUp char ->
+            if Set.member char currentModel.keysPressed then
+                applyKeyPress Set.remove char currentModel
+
+            else
+                ( currentModel, Cmd.none )
 
 
 applyKeyPress : (String -> Set String -> Set String) -> String -> Model -> ( Model, Cmd msg )
-applyKeyPress op c foo =
-    let newStateOfWorld = op c foo.keysPressed in
-    ( { foo | keysPressed = newStateOfWorld }
+applyKeyPress op char currentModel =
+    let
+        newStateOfWorld =
+            op char currentModel.keysPressed
+    in
+    ( { currentModel | keysPressed = newStateOfWorld }
     , newStateOfWorld
-        |> translateKeyPresses foo.notesDict
+        |> translateKeyPresses currentModel.notesDict
         |> E.list E.string
-        |> activeNotes 
+        |> activeNotes
     )
 
 
@@ -112,11 +120,12 @@ keyDownDecoder =
 
 
 view : Model -> Html Msg
-view foo =
+view currentModel =
     div [ on "keydown" keyDownDecoder, on "keyup" keyUpDecoder, tabindex 0, id "main" ]
-        [ textarea [ value foo.layout, onInput NewLayout ] []
-        , toKeyboard foo.layout foo.notesDict foo.keysPressed
+        [ textarea [ value currentModel.layout, onInput NewLayout ] []
+        , toKeyboard currentModel.layout currentModel.notesDict currentModel.keysPressed
         ]
+
 
 keyStyle : Bool -> List (Attribute msg)
 keyStyle active =
@@ -129,7 +138,13 @@ keyStyle active =
     , style "height" "40px"
     , style "position" "relative"
     , style "font-family" "monospace"
-    , style "background-color" (if active then "cyan" else "peachpuff")
+    , style "background-color"
+        (if active then
+            "cyan"
+
+         else
+            "peachpuff"
+        )
     ]
 
 
@@ -174,21 +189,20 @@ symbolStyle =
 
 
 toKey : String -> Bool -> Maybe String -> Html Msg
-toKey c active mnote =
-    if c == " " then
+toKey char active mnote =
+    if char == " " then
         div spaceStyle []
 
     else
         div (keyStyle active)
-            [ input (noteInputStyle ++ [ type_ "text", value <| noteToText mnote, onInput (NewNote c) ]) []
-            , div symbolStyle [ text c ]
+            [ input (noteInputStyle ++ [ type_ "text", value <| noteToText mnote, onInput (NewNote char) ]) []
+            , div symbolStyle [ text char ]
             ]
 
 
 toRow : String -> Dict String String -> Set String -> Html Msg
 toRow s nd kp =
-    s
-        |> String.toList
+    String.toList s
         |> List.map String.fromChar
         |> List.map (\key -> toKey key (Set.member key kp) <| Dict.get key nd)
         |> div [ style "clear" "left" ]
@@ -196,7 +210,6 @@ toRow s nd kp =
 
 toKeyboard : String -> Dict String String -> Set String -> Html Msg
 toKeyboard s nd kp =
-    s
-        |> String.lines
+    String.lines s
         |> List.map (\line -> toRow line nd kp)
         |> div []

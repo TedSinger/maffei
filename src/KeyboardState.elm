@@ -1,4 +1,4 @@
-port module Keystate exposing (activeNotes, noteCfg)
+port module KeyboardState exposing (activeNotes, noteCfg)
 
 import Json.Encode as E
 
