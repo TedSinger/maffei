@@ -128,7 +128,7 @@ view currentModel =
 
 
 keyStyle : Bool -> List (Attribute msg)
-keyStyle active =
+keyStyle isActive =
     [ style "border-style" "solid"
     , style "border-width" "1px"
     , style "border-radius" "5px"
@@ -139,7 +139,7 @@ keyStyle active =
     , style "position" "relative"
     , style "font-family" "monospace"
     , style "background-color"
-        (if active then
+        (if isActive then
             "cyan"
 
          else
@@ -158,9 +158,9 @@ spaceStyle =
     ]
 
 
-noteToText : Maybe String -> String
-noteToText mnote =
-    case mnote of
+getOrBlank : String -> Dict String String -> String
+getOrBlank char noteDict =
+    case Dict.get char noteDict of
         Just note ->
             note
 
@@ -184,32 +184,32 @@ noteInputStyle =
     ]
 
 
-symbolStyle =
+charStyle =
     [ style "align" "left", style "position" "absolute", style "bottom" "0" ]
 
 
-toKey : String -> Bool -> Maybe String -> Html Msg
-toKey char active mnote =
+toKey : String -> Bool -> String -> Html Msg
+toKey char isActive note =
     if char == " " then
         div spaceStyle []
 
     else
-        div (keyStyle active)
-            [ input (noteInputStyle ++ [ type_ "text", value <| noteToText mnote, onInput (NewNote char) ]) []
-            , div symbolStyle [ text char ]
+        div (keyStyle isActive)
+            [ input (noteInputStyle ++ [ type_ "text", value note, onInput (NewNote char) ]) []
+            , div charStyle [ text char ]
             ]
 
 
 toRow : String -> Dict String String -> Set String -> Html Msg
-toRow s nd kp =
-    String.toList s
+toRow rowString noteDict charsPressed =
+    String.toList rowString
         |> List.map String.fromChar
-        |> List.map (\key -> toKey key (Set.member key kp) <| Dict.get key nd)
+        |> List.map (\char -> toKey char (Set.member char charsPressed) <| getOrBlank char noteDict)
         |> div [ style "clear" "left" ]
 
 
 toKeyboard : String -> Dict String String -> Set String -> Html Msg
-toKeyboard s nd kp =
-    String.lines s
-        |> List.map (\line -> toRow line nd kp)
+toKeyboard layoutString noteDict charsPressed =
+    String.lines layoutString
+        |> List.map (\line -> toRow line noteDict charsPressed)
         |> div []
