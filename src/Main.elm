@@ -1,12 +1,14 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
+module Main exposing (Model, init, main, update, view)
 
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, label, span, text, textarea)
-import Html.Attributes exposing (id, style, tabindex, type_, value)
+import Html.Attributes exposing (class, id, style, tabindex, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput, onMouseEnter, targetValue)
 import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
+import KeyHtml exposing (Msg(..), renderKeyboard)
+import KeyboardLayout exposing (Keyboard, keyboardFromModel)
 import KeyboardState exposing (activeNotes, noteCfg)
 import Notes exposing (genNoteCfg, getName)
 import Set exposing (Set)
@@ -39,7 +41,7 @@ initNoteCfg =
 
 
 myKeys =
-    "azsxdcfvgb1q2w3e4r5t6hnjmk,l.;y7u8i9o0p-[=]"
+    "zxcvbasdfgqwert123456nm,.hjkl;yuiop[]7890-="
 
 
 initNotesDict =
@@ -56,13 +58,6 @@ init _ =
       }
     , noteCfg initNoteCfg
     )
-
-
-type Msg
-    = NewLayout String
-    | NewNote String String
-    | KeyDown String
-    | KeyUp String
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -123,93 +118,5 @@ view : Model -> Html Msg
 view currentModel =
     div [ on "keydown" keyDownDecoder, on "keyup" keyUpDecoder, tabindex 0, id "main" ]
         [ textarea [ value currentModel.layout, onInput NewLayout ] []
-        , toKeyboard currentModel.layout currentModel.notesDict currentModel.keysPressed
+        , renderKeyboard (keyboardFromModel currentModel.notesDict currentModel.layout) currentModel.keysPressed
         ]
-
-
-keyStyle : Bool -> List (Attribute msg)
-keyStyle isActive =
-    [ style "border-style" "solid"
-    , style "border-width" "1px"
-    , style "border-radius" "5px"
-    , style "float" "left"
-    , style "margin" "0.4%"
-    , style "width" "6%"
-    , style "height" "40px"
-    , style "position" "relative"
-    , style "font-family" "monospace"
-    , style "background-color"
-        (if isActive then
-            "cyan"
-
-         else
-            "peachpuff"
-        )
-    ]
-
-
-spaceStyle =
-    [ style "width" "21px"
-    , style "float" "left"
-    , style "border-color" "white"
-    , style "color" "white"
-    , style "height" "40px"
-    , style "position" "relative"
-    ]
-
-
-getOrBlank : String -> Dict String String -> String
-getOrBlank char noteDict =
-    case Dict.get char noteDict of
-        Just note ->
-            note
-
-        Nothing ->
-            ""
-
-
-noteInputStyle =
-    [ style "border-style" "solid"
-    , style "border-width" "1px"
-    , style "border-color" "black"
-    , style "border-radius" "3px"
-    , style "max-width" "80%"
-    , style "height" "15px"
-    , style "text-align" "center"
-    , style "margin-left" "10%"
-    , style "margin-right" "10%"
-    , style "-webkit-box-sizing" "border-box"
-    , style "-moz-box-sizing" "border-box"
-    , style "box-sizing" "border-box"
-    ]
-
-
-charStyle =
-    [ style "align" "left", style "position" "absolute", style "bottom" "0" ]
-
-
-toKey : String -> Bool -> String -> Html Msg
-toKey char isActive note =
-    if char == " " then
-        div spaceStyle []
-
-    else
-        div (keyStyle isActive)
-            [ input (noteInputStyle ++ [ type_ "text", value note, onInput (NewNote char) ]) []
-            , div charStyle [ text char ]
-            ]
-
-
-toRow : String -> Dict String String -> Set String -> Html Msg
-toRow rowString noteDict charsPressed =
-    String.toList rowString
-        |> List.map String.fromChar
-        |> List.map (\char -> toKey char (Set.member char charsPressed) <| getOrBlank char noteDict)
-        |> div [ style "clear" "left" ]
-
-
-toKeyboard : String -> Dict String String -> Set String -> Html Msg
-toKeyboard layoutString noteDict charsPressed =
-    String.lines layoutString
-        |> List.map (\line -> toRow line noteDict charsPressed)
-        |> div []
