@@ -3,7 +3,7 @@ module KeyHtml exposing (Msg(..), renderKeyboard)
 import Html exposing (Attribute, Html, button, div, input, label, span, text, textarea)
 import Html.Attributes exposing (attribute, class, id, style, tabindex, type_, value)
 import Html.Events exposing (keyCode, on, onClick, onInput, onMouseEnter, targetValue)
-import KeyboardLayout exposing (Key, KeyPlacement, Keyboard)
+import KeyboardLayout exposing (Key, Keyboard)
 import Set exposing (Set)
 
 
@@ -14,7 +14,7 @@ type Msg
     | KeyUp String
 
 
-noteInputStyle =
+noteInputStyle key =
     [ style "border-style" "solid"
     , style "border-width" "1px"
     , style "border-color" "black"
@@ -25,6 +25,9 @@ noteInputStyle =
     , style "-webkit-box-sizing" "border-box"
     , style "-moz-box-sizing" "border-box"
     , style "box-sizing" "border-box"
+    , type_ "text"
+    , value key.note
+    , onInput (NewNote key.char)
     ]
 
 
@@ -33,8 +36,8 @@ charStyle =
     ]
 
 
-keyStyle : KeyPlacement -> Bool -> List (Attribute msg)
-keyStyle keyPlace isActive =
+keyStyle : Key -> Bool -> List (Attribute msg)
+keyStyle key isActive =
     [ style "border-style" "solid"
     , style "border-width" "1px"
     , style "border-radius" "5px"
@@ -49,47 +52,40 @@ keyStyle keyPlace isActive =
          else
             "peachpuff"
         )
-    , style "grid-row" (String.fromInt <| keyPlace.row + 1)
-    , style "grid-column-start" (String.fromInt keyPlace.colStart)
-    , style "grid-column-end" (String.fromInt keyPlace.colEnd)
+    , style "grid-row" (String.fromInt key.row)
+    , style "grid-column-start" (String.fromInt key.colStart)
+    , style "grid-column-end" (String.fromInt key.colEnd)
     ]
 
 
-spaceStyle : KeyPlacement -> List (Attribute msg)
-spaceStyle keyPlace =
+spaceStyle : Key -> List (Attribute msg)
+spaceStyle key =
     [ style "border-color" "white"
     , style "color" "white"
     , style "height" "40px"
-    , style "grid-row" (String.fromInt <| keyPlace.row + 1)
-    , style "grid-column-start" (String.fromInt keyPlace.colStart)
-    , style "grid-column-end" (String.fromInt keyPlace.colEnd)
+    , style "grid-row" (String.fromInt key.row)
+    , style "grid-column-start" (String.fromInt key.colStart)
+    , style "grid-column-end" (String.fromInt key.colEnd)
     ]
 
 
-renderKey : Set String -> ( Key, KeyPlacement ) -> Html Msg
-renderKey keysPressed ( key, keyPlace ) =
+renderKey : Set String -> Key -> Html Msg
+renderKey keysPressed key =
     if key.char == " " then
-        div (spaceStyle keyPlace) []
+        div (spaceStyle key) []
 
     else
-        div (keyStyle keyPlace <| Set.member key.char keysPressed)
-            [ input
-                (noteInputStyle
-                    ++ [ type_ "text"
-                       , value key.note
-                       , onInput (NewNote key.char)
-                       ]
-                )
-                []
+        div (keyStyle key <| Set.member key.char keysPressed)
+            [ input (noteInputStyle key) []
             , div charStyle [ text key.char ]
             ]
 
 
-getMaxColumn : Keyboard -> String
-getMaxColumn keyboard =
+gridTemplateColumns : Keyboard -> String
+gridTemplateColumns keyboard =
     let
         maxCol =
-            List.maximum <| List.map (\( key, kp ) -> kp.colEnd) keyboard
+            List.maximum <| List.map .colEnd keyboard
     in
     case maxCol of
         Just n ->
@@ -99,11 +95,34 @@ getMaxColumn keyboard =
             ""
 
 
+
+-- CSS grid placement assumes that item order is relevant to placement
+
+
+compareKeys : Key -> Key -> Order
+compareKeys left right =
+    if left.row > right.row then
+        GT
+
+    else if left.row < right.row then
+        LT
+
+    else if left.colEnd > right.colEnd then
+        GT
+
+    else if left.colEnd < right.colEnd then
+        LT
+
+    else
+        EQ
+
+
 renderKeyboard : Keyboard -> Set String -> Html Msg
 renderKeyboard keyboard keysPressed =
-    List.map (renderKey keysPressed) keyboard
+    List.sortWith compareKeys keyboard
+        |> List.map (renderKey keysPressed)
         |> div
             [ style "display" "grid"
             , style "justify-content" "start"
-            , style "grid-template-columns" (getMaxColumn keyboard)
+            , style "grid-template-columns" (gridTemplateColumns keyboard)
             ]

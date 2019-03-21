@@ -1,18 +1,19 @@
-module KeyboardLayout exposing (Key, KeyPlacement, Keyboard, keyboardFromModel)
+module KeyboardLayout exposing (Key, Keyboard, keyboardFromModel)
 
 import Dict exposing (Dict)
 
 
-type alias KeyPlacement =
-    { row : Int, colStart : Int, colEnd : Int }
-
-
 type alias Key =
-    { char : String, note : String }
+    { char : String
+    , note : String
+    , row : Int
+    , colStart : Int
+    , colEnd : Int
+    }
 
 
 type alias Keyboard =
-    List ( Key, KeyPlacement )
+    List Key
 
 
 getOrBlank : Dict String String -> String -> String
@@ -29,7 +30,7 @@ prependToRow : Dict String String -> Int -> String -> Keyboard -> Keyboard
 prependToRow noteDict rowNum nextChar current =
     let
         key =
-            { char = nextChar, note = getOrBlank noteDict nextChar }
+            {}
     in
     let
         width =
@@ -42,13 +43,13 @@ prependToRow noteDict rowNum nextChar current =
     let
         start =
             case current of
-                ( headKey, headPlace ) :: tail ->
-                    headPlace.colEnd
+                headKey :: tail ->
+                    headKey.colEnd
 
                 [] ->
                     1
     in
-    ( key, { row = rowNum, colStart = start, colEnd = start + width } ) :: current
+    { char = nextChar, note = getOrBlank noteDict nextChar, row = rowNum + 1, colStart = start, colEnd = start + width } :: current
 
 
 stringToRow : Dict String String -> Int -> String -> Keyboard
@@ -56,7 +57,6 @@ stringToRow noteDict rowNum chars =
     String.toList chars
         |> List.map String.fromChar
         |> List.foldl (prependToRow noteDict rowNum) []
-        |> List.reverse
 
 
 keyboardFromModel : Dict String String -> String -> Keyboard
