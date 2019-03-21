@@ -25,7 +25,7 @@
         document.getElementById('main').focus();
 
 
-        app.ports.noteCfg.subscribe(function (notes) {
+        app.ports.sendNoteCfg.subscribe(function (notes) {
             console.log(notes);
             if (g === null) {
                 initialNoteCfg = notes;
@@ -35,7 +35,7 @@
         })
 
 
-        app.ports.activeNotes.subscribe(function (notes) {
+        app.ports.sendList.subscribe(function (notes) {
             if (g === null) {
                 g = makeAudioGraph();
                 setNoteConfig(g, initialNoteCfg);

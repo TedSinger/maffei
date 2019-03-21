@@ -1,8 +1,8 @@
 module KeyHtml exposing (Msg(..), renderKeyboard)
 
-import Html exposing (Attribute, Html, button, div, input, label, span, text, textarea)
-import Html.Attributes exposing (attribute, class, id, style, tabindex, type_, value)
-import Html.Events exposing (keyCode, on, onClick, onInput, onMouseEnter, targetValue)
+import Html exposing (Attribute, Html, div, input, text)
+import Html.Attributes exposing (attribute, id, style, type_, value)
+import Html.Events exposing (keyCode, on, onInput, targetValue)
 import KeyboardLayout exposing (Key, Keyboard)
 import Set exposing (Set)
 
@@ -10,8 +10,7 @@ import Set exposing (Set)
 type Msg
     = NewLayout String
     | NewNote String String
-    | KeyDown String
-    | KeyUp String
+    | KeyActive Bool String
 
 
 noteInputStyle key =
