@@ -52,18 +52,22 @@ update msg currentModel =
             ( { currentModel | notesDict = Dict.insert char s currentModel.notesDict }, Cmd.none )
 
         KeyActive active char ->
-            let
-                newKeysPressed =
-                    if active then
-                        Set.insert char currentModel.keysPressed
+            if Set.member char currentModel.keysPressed /= active then
+                let
+                    newKeysPressed =
+                        if active then
+                            Set.insert char currentModel.keysPressed
 
-                    else
-                        Set.remove char currentModel.keysPressed
-            in
-            ( { currentModel | keysPressed = newKeysPressed }
-            , translateKeyPresses currentModel.notesDict newKeysPressed
-                |> sendActiveNotes
-            )
+                        else
+                            Set.remove char currentModel.keysPressed
+                in
+                ( { currentModel | keysPressed = newKeysPressed }
+                , translateKeyPresses currentModel.notesDict newKeysPressed
+                    |> sendActiveNotes
+                )
+
+            else
+                ( currentModel, Cmd.none )
 
 
 translateKeyPresses : Dict String String -> Set String -> List String
