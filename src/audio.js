@@ -72,7 +72,7 @@ async function rampGain(gainNode, targetGain, maxGain) {
     changeRate = maxGain / 0.015;
     oldGain = gainNode.gain.value;
     targetTime = Math.max(0.015, gainNode.context.currentTime + Math.abs(targetGain - oldGain) / changeRate);
-    gainNode.gain.setValueAtTime(oldGain, 0); // 0 means "now"
+    gainNode.gain.setValueAtTime(oldGain, gainNode.context.currentTime);
 
     gainNode.gain.linearRampToValueAtTime(targetGain, targetTime);
 }
