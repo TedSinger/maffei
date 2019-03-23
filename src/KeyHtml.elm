@@ -1,8 +1,8 @@
-module KeyHtml exposing (Msg(..), renderKeyboard)
+module KeyHtml exposing (Msg(..), renderKeyboard, UIMode(..))
 
 import Html exposing (Attribute, Html, div, input, text)
 import Html.Attributes exposing (attribute, id, style, type_, value)
-import Html.Events exposing (keyCode, on, onInput, targetValue)
+import Html.Events exposing (keyCode, on, onInput, targetValue, onFocus)
 import KeyboardLayout exposing (Key, Keyboard)
 import Set exposing (Set)
 
@@ -11,27 +11,36 @@ type Msg
     = NewLayout String
     | NewNote String String
     | KeyActive Bool String
+    | StartPlaying
+    | EditLayout
 
+type UIMode
+    = Playing
+    | EditingLayout
 
 noteInputStyle key =
     [ style "border-style" "solid"
     , style "border-width" "1px"
-    , style "border-color" "black"
+    , style "border-color" "#aaa"
     , style "border-radius" "3px"
+    , style "margin" "5%"
     , style "height" "15px"
     , style "text-align" "center"
-    , style "width" "100%"
+    , style "width" "90%"
     , style "-webkit-box-sizing" "border-box"
     , style "-moz-box-sizing" "border-box"
     , style "box-sizing" "border-box"
     , type_ "text"
     , value key.note
     , onInput (NewNote key.char)
+    , onFocus EditLayout
     ]
 
 
 charStyle =
-    [ style "align" "left"
+    [ style "position" "relative"
+    , style "left" "10%"
+    , style "top" "10%"
     ]
 
 
@@ -42,8 +51,11 @@ keyStyle key isActive =
     , style "border-radius" "5px"
     , style "margin-left" "8%"
     , style "margin-right" "8%"
+    , style "margin-bottom" "1px"
+    , style "margin-top" "2px"
     , style "height" "40px"
     , style "font-family" "monospace"
+    , style "box-shadow" "1px 2px #aaa"
     , style "background-color"
         (if isActive then
             "cyan"
