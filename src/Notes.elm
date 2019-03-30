@@ -1,8 +1,22 @@
-module Notes exposing (genNoteCfg, getName)
+module Notes exposing (genNoteCfg, getName, Note, NoteConfig)
 
 import Dict exposing (Dict)
 import EqualLoudness exposing (fletcherMunson, linearInterpolate)
+import HSLuv exposing (HSLuv)
 import Set
+
+
+type alias Note =
+    { halfStepsFromA440 : Int
+    , freq : Float
+    , gain : Float
+    , name : String
+    , color : HSLuv
+    }
+
+
+type alias NoteConfig =
+    Dict String Note
 
 
 getName : Int -> String
@@ -40,7 +54,7 @@ getName halfStepsFromA440 =
             "?"
 
 
-genNoteCfg : Int -> ( String, Dict String Float )
+genNoteCfg : Int -> ( String, Note )
 genNoteCfg halfStepsFromA440 =
     let
         freq =
@@ -50,10 +64,10 @@ genNoteCfg halfStepsFromA440 =
         gain =
             linearInterpolate freq fletcherMunson
     in
-    ( getName halfStepsFromA440
-    , Dict.fromList
-        [ ( "freq", freq )
-        , ( "gain", gain )
-        , ( "halfStepsFromA440", toFloat halfStepsFromA440 )
-        ]
+    let
+        name =
+            getName halfStepsFromA440
+    in
+    ( name
+    , { freq = freq, gain = gain, halfStepsFromA440 = halfStepsFromA440, name = name, color = HSLuv.hsluv { hue = 0, saturation = 0, lightness = 0, alpha = 0 } }
     )

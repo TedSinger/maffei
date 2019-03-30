@@ -1,7 +1,8 @@
 module Main exposing (Model, init, main, update, view)
 
 import Browser
-import Configs exposing (myLayout, myNoteCfg, myNotesDict)
+import Notes exposing (Note, NoteConfig)
+import Configs exposing (myLayout, myNoteCfg, myKeyboardMapping)
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, text, textarea)
 import Html.Attributes exposing (class, id, style, tabindex, value)
@@ -10,7 +11,7 @@ import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
 import KeyHtml exposing (Msg(..), UIMode(..), renderKeyboard)
 import KeyboardLayout exposing (Keyboard, keyboardFromModel)
-import KeyboardState exposing (sendActiveNotes, sendNoteCfg)
+import KeyboardState exposing (sendActiveNotes, sendNoteConfig)
 import Set exposing (Set)
 
 
@@ -30,20 +31,22 @@ subscriptions model =
 
 type alias Model =
     { layout : String
-    , notesDict : Dict String String
+    , keyboardMapping : Dict String String
     , keysPressed : Set String
     , uiMode : UIMode
+    , noteConfig : NoteConfig
     }
 
 
 init : () -> ( Model, Cmd msg )
 init _ =
     ( { layout = myLayout
-      , notesDict = myNotesDict
+      , keyboardMapping = myKeyboardMapping
       , keysPressed = Set.empty
       , uiMode = Playing
+      , noteConfig = myNoteCfg
       }
-    , sendNoteCfg myNoteCfg
+    , sendNoteConfig myNoteCfg
     )
 
 
@@ -54,7 +57,7 @@ update msg currentModel =
             ( { currentModel | layout = s }, Cmd.none )
 
         NewNote char s ->
-            ( { currentModel | notesDict = Dict.insert char s currentModel.notesDict }, Cmd.none )
+            ( { currentModel | keyboardMapping = Dict.insert char s currentModel.keyboardMapping }, Cmd.none )
 
         KeyActive active char ->
             if Set.member char currentModel.keysPressed /= active then
@@ -67,7 +70,7 @@ update msg currentModel =
                             Set.remove char currentModel.keysPressed
                 in
                 ( { currentModel | keysPressed = newKeysPressed }
-                , translateKeyPresses currentModel.notesDict newKeysPressed
+                , translateKeyPresses currentModel.keyboardMapping currentModel.layout newKeysPressed
                     |> sendActiveNotes
                 )
 
@@ -81,10 +84,11 @@ update msg currentModel =
             ( { currentModel | uiMode = EditingLayout }, Cmd.none )
 
 
-translateKeyPresses : Dict String String -> Set String -> List String
-translateKeyPresses notes keys =
+translateKeyPresses : Dict String String -> String -> Set String -> List String
+translateKeyPresses keyboardMapping layout keys =
     Set.toList keys
-        |> List.filterMap (\k -> Dict.get k notes)
+        |> List.filter (\k -> String.contains k layout)
+        |> List.filterMap (\k -> Dict.get k keyboardMapping)
 
 
 keyDecoder : (String -> Msg) -> Decoder Msg
@@ -145,6 +149,6 @@ view currentModel =
                , style "height" "100%"
                ]
         )
-        [ renderKeyboard (keyboardFromModel currentModel.notesDict currentModel.layout) currentModel.keysPressed
+        [ renderKeyboard (keyboardFromModel currentModel.keyboardMapping currentModel.layout) currentModel.keysPressed
         , editArea
         ]

@@ -1,23 +1,22 @@
-module Configs exposing (myKeys, myLayout, myNoteCfg, myNotesDict)
+module Configs exposing (myKeys, myLayout, myNoteCfg, myKeyboardMapping)
 
 import Dict exposing (Dict)
 import Json.Encode as E
-import Notes exposing (genNoteCfg, getName)
+import Notes exposing (genNoteCfg, getName, Note, NoteConfig)
 
 
-myNoteCfg : E.Value
+myNoteCfg : NoteConfig
 myNoteCfg =
     List.range -24 36
         |> List.map genNoteCfg
         |> Dict.fromList
-        |> E.dict identity (E.dict identity E.float)
 
 
 myKeys =
     "zxcvbasdfgqwert123456nm,.hjkl;yuiop[]7890-="
 
 
-myNotesDict =
+myKeyboardMapping =
     List.range 0 45
         |> List.map (\i -> ( String.slice i (i + 1) myKeys, getName (i - 14) ))
         |> Dict.fromList

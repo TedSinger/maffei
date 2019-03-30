@@ -1,7 +1,7 @@
 module KeyboardLayout exposing (Key, Keyboard, keyboardFromModel)
 
 import Dict exposing (Dict)
-
+import HSLuv exposing (HSLuv)
 
 type alias Key =
     { char : String
