@@ -1,8 +1,7 @@
 module Main exposing (Model, init, main, update, view)
 
 import Browser
-import Notes exposing (Note, NoteConfig)
-import Configs exposing (myLayout, myNoteCfg, myKeyboardMapping)
+import Configs exposing (myKeyboardMapping, myLayout, myNoteCfg)
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, text, textarea)
 import Html.Attributes exposing (class, id, style, tabindex, value)
@@ -10,8 +9,9 @@ import Html.Events exposing (on, onBlur, onClick, onFocus, onInput)
 import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
 import KeyHtml exposing (Msg(..), UIMode(..), renderKeyboard)
-import KeyboardLayout exposing (Keyboard, keyboardFromModel)
+import KeyboardLayout exposing (Keyboard, KeyboardModel, keyboardFromModel)
 import KeyboardState exposing (sendActiveNotes, sendNoteConfig)
+import Notes exposing (Note, NoteConfig)
 import Set exposing (Set)
 
 
@@ -30,58 +30,59 @@ subscriptions model =
 
 
 type alias Model =
-    { layout : String
-    , keyboardMapping : Dict String String
-    , keysPressed : Set String
+    { keyboard : KeyboardModel
     , uiMode : UIMode
-    , noteConfig : NoteConfig
     }
 
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( { layout = myLayout
-      , keyboardMapping = myKeyboardMapping
-      , keysPressed = Set.empty
+    ( { keyboard =
+            
+                { layout = myLayout
+                , mapping = myKeyboardMapping
+                , keysPressed = Set.empty
+                , noteConfig = myNoteCfg
+                }
       , uiMode = Playing
-      , noteConfig = myNoteCfg
       }
     , sendNoteConfig myNoteCfg
     )
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
-update msg currentModel =
+update msg oldModel =
+    let oldKeyboard = oldModel.keyboard in
     case msg of
         NewLayout s ->
-            ( { currentModel | layout = s }, Cmd.none )
+            ( { oldModel | keyboard = { oldKeyboard | layout = s }}, Cmd.none )
 
         NewNote char s ->
-            ( { currentModel | keyboardMapping = Dict.insert char s currentModel.keyboardMapping }, Cmd.none )
+            ( { oldModel | keyboard = { oldKeyboard | mapping = Dict.insert char s oldKeyboard.mapping } }, Cmd.none )
 
         KeyActive active char ->
-            if Set.member char currentModel.keysPressed /= active then
+            if Set.member char oldKeyboard.keysPressed /= active then
                 let
                     newKeysPressed =
                         if active then
-                            Set.insert char currentModel.keysPressed
+                            Set.insert char oldKeyboard.keysPressed
 
                         else
-                            Set.remove char currentModel.keysPressed
+                            Set.remove char oldKeyboard.keysPressed
                 in
-                ( { currentModel | keysPressed = newKeysPressed }
-                , translateKeyPresses currentModel.keyboardMapping currentModel.layout newKeysPressed
+                ( { oldModel | keyboard = { oldKeyboard | keysPressed = newKeysPressed } }
+                , translateKeyPresses oldKeyboard.mapping oldKeyboard.layout newKeysPressed
                     |> sendActiveNotes
                 )
 
             else
-                ( currentModel, Cmd.none )
+                ( oldModel, Cmd.none )
 
         StartPlaying ->
-            ( { currentModel | uiMode = Playing }, Cmd.none )
+            ( { oldModel | uiMode = Playing }, Cmd.none )
 
         EditLayout ->
-            ( { currentModel | uiMode = EditingLayout }, Cmd.none )
+            ( { oldModel | uiMode = EditingLayout }, Cmd.none )
 
 
 translateKeyPresses : Dict String String -> String -> Set String -> List String
@@ -105,10 +106,10 @@ center elems =
 
 
 view : Model -> Html Msg
-view currentModel =
+view oldModel =
     let
         editArea =
-            if currentModel.uiMode == Playing then
+            if oldModel.uiMode == Playing then
                 center
                     [ button
                         [ onClick EditLayout
@@ -120,7 +121,7 @@ view currentModel =
             else
                 center
                     [ textarea
-                        [ value currentModel.layout
+                        [ value oldModel.keyboard.layout
                         , onInput NewLayout
                         , style "margin-top" "2px"
                         ]
@@ -130,7 +131,7 @@ view currentModel =
     in
     let
         topLevelCallbacks =
-            if currentModel.uiMode == Playing then
+            if oldModel.uiMode == Playing then
                 [ on "keydown" (keyDecoder <| KeyActive True)
                 , on "keyup" (keyDecoder <| KeyActive False)
                 , onBlur EditLayout
@@ -149,6 +150,6 @@ view currentModel =
                , style "height" "100%"
                ]
         )
-        [ renderKeyboard (keyboardFromModel currentModel.keyboardMapping currentModel.layout) currentModel.keysPressed
+        [ renderKeyboard (keyboardFromModel oldModel.keyboard) oldModel.keyboard.keysPressed
         , editArea
         ]

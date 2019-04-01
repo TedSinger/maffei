@@ -1,7 +1,9 @@
-module KeyboardLayout exposing (Key, Keyboard, keyboardFromModel)
+module KeyboardLayout exposing (Key, Keyboard, KeyboardModel, keyboardFromModel)
 
 import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
+import Notes exposing (Note, NoteConfig)
+import Set exposing (Set)
 
 type alias Key =
     { char : String
@@ -9,16 +11,24 @@ type alias Key =
     , row : Int
     , colStart : Int
     , colEnd : Int
+    , color : Int
     }
 
 
 type alias Keyboard =
     List Key
 
+type alias KeyboardModel =     
+    { layout : String
+    , mapping : Dict String String
+    , keysPressed : Set String
+    , noteConfig : NoteConfig
+    }
+
 
 getOrBlank : Dict String String -> String -> String
-getOrBlank noteDict char =
-    case Dict.get char noteDict of
+getOrBlank keyboardMapping char =
+    case Dict.get char keyboardMapping of
         Just note ->
             note
 
@@ -27,7 +37,7 @@ getOrBlank noteDict char =
 
 
 prependToRow : Dict String String -> Int -> String -> Keyboard -> Keyboard
-prependToRow noteDict rowNum nextChar current =
+prependToRow keyboardMapping rowNum nextChar current =
     let
         key =
             {}
@@ -49,21 +59,21 @@ prependToRow noteDict rowNum nextChar current =
                 [] ->
                     1
     in
-    { char = nextChar, note = getOrBlank noteDict nextChar, row = rowNum + 1, colStart = start, colEnd = start + width } :: current
+    { char = nextChar, note = getOrBlank keyboardMapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = 0 } :: current
 
 
 stringToRow : Dict String String -> Int -> String -> Keyboard
-stringToRow noteDict rowNum chars =
+stringToRow keyboardMapping rowNum chars =
     String.toList chars
         |> List.map String.fromChar
-        |> List.foldl (prependToRow noteDict rowNum) []
+        |> List.foldl (prependToRow keyboardMapping rowNum) []
 
 
-keyboardFromModel : Dict String String -> String -> Keyboard
-keyboardFromModel noteDict chars =
+keyboardFromModel : KeyboardModel -> Keyboard
+keyboardFromModel km =
     let
         lines =
-            String.lines chars
+            String.lines km.layout
     in
-    List.indexedMap (stringToRow noteDict) lines
+    List.indexedMap (stringToRow km.mapping) lines
         |> List.concat
