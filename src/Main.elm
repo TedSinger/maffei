@@ -1,7 +1,7 @@
 module Main exposing (Model, init, main, update, view)
 
 import Browser
-import Configs exposing (myKeyboardMapping, myLayout, myNoteCfg)
+import Configs exposing (myKeyboard)
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, text, textarea)
 import Html.Attributes exposing (class, id, style, tabindex, value)
@@ -37,16 +37,10 @@ type alias Model =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( { keyboard =
-            
-                { layout = myLayout
-                , mapping = myKeyboardMapping
-                , keysPressed = Set.empty
-                , noteConfig = myNoteCfg
-                }
+    ( { keyboard = myKeyboard
       , uiMode = Playing
       }
-    , sendNoteConfig myNoteCfg
+    , sendNoteConfig myKeyboard.noteConfig
     )
 
 
@@ -150,6 +144,6 @@ view oldModel =
                , style "height" "100%"
                ]
         )
-        [ renderKeyboard (keyboardFromModel oldModel.keyboard) oldModel.keyboard.keysPressed
+        [ renderKeyboard (keyboardFromModel oldModel.keyboard)
         , editArea
         ]

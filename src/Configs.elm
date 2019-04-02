@@ -1,8 +1,9 @@
-module Configs exposing (myKeys, myLayout, myNoteCfg, myKeyboardMapping)
+module Configs exposing (myKeyboard)
 
 import Dict exposing (Dict)
 import Json.Encode as E
 import Notes exposing (genNoteCfg, getName, Note, NoteConfig)
+import Set exposing (Set)
 
 
 myNoteCfg : NoteConfig
@@ -24,3 +25,9 @@ myKeyboardMapping =
 
 myLayout =
     "123456 7890-=\n qwert yuiop[]\n  asdfg hjkl;\n   zxcvb nm,."
+
+myKeyboard = { layout = myLayout
+                , mapping = myKeyboardMapping
+                , keysPressed = Set.empty
+                , noteConfig = myNoteCfg
+                }

@@ -4,6 +4,7 @@ import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
 import Notes exposing (Note, NoteConfig)
 import Set exposing (Set)
+import Maybe exposing (andThen)
 
 type alias Key =
     { char : String
@@ -11,14 +12,15 @@ type alias Key =
     , row : Int
     , colStart : Int
     , colEnd : Int
-    , color : Int
+    , color : HSLuv
     }
 
 
 type alias Keyboard =
     List Key
 
-type alias KeyboardModel =     
+
+type alias KeyboardModel =
     { layout : String
     , mapping : Dict String String
     , keysPressed : Set String
@@ -27,8 +29,8 @@ type alias KeyboardModel =
 
 
 getOrBlank : Dict String String -> String -> String
-getOrBlank keyboardMapping char =
-    case Dict.get char keyboardMapping of
+getOrBlank mapping char =
+    case Dict.get char mapping of
         Just note ->
             note
 
@@ -36,8 +38,8 @@ getOrBlank keyboardMapping char =
             ""
 
 
-prependToRow : Dict String String -> Int -> String -> Keyboard -> Keyboard
-prependToRow keyboardMapping rowNum nextChar current =
+prependToRow : KeyboardModel -> Int -> String -> Keyboard -> Keyboard
+prependToRow km rowNum nextChar current =
     let
         key =
             {}
@@ -59,14 +61,29 @@ prependToRow keyboardMapping rowNum nextChar current =
                 [] ->
                     1
     in
-    { char = nextChar, note = getOrBlank keyboardMapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = 0 } :: current
+    let
+        note =
+            Dict.get nextChar km.mapping
+            |> andThen (\name -> Dict.get name km.noteConfig)
+            
+    in
+    let
+        color = if Set.member nextChar km.keysPressed then HSLuv.hsluv { hue = 0, saturation = 0, lightness = 1, alpha = 1 } else 
+            case note of
+                Just n ->
+                    n.color
+
+                Nothing ->
+                    HSLuv.hsluv { hue = 0, saturation = 0, lightness = 0, alpha = 0 }
+    in
+    { char = nextChar, note = getOrBlank km.mapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = color } :: current
 
 
-stringToRow : Dict String String -> Int -> String -> Keyboard
-stringToRow keyboardMapping rowNum chars =
+stringToRow : KeyboardModel -> Int -> String -> Keyboard
+stringToRow km rowNum chars =
     String.toList chars
         |> List.map String.fromChar
-        |> List.foldl (prependToRow keyboardMapping rowNum) []
+        |> List.foldl (prependToRow km rowNum) []
 
 
 keyboardFromModel : KeyboardModel -> Keyboard
@@ -75,5 +92,5 @@ keyboardFromModel km =
         lines =
             String.lines km.layout
     in
-    List.indexedMap (stringToRow km.mapping) lines
+    List.indexedMap (stringToRow km) lines
         |> List.concat

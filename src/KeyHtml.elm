@@ -1,10 +1,12 @@
-module KeyHtml exposing (Msg(..), renderKeyboard, UIMode(..))
+module KeyHtml exposing (Msg(..), UIMode(..), renderKeyboard)
 
+import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
 import Html.Attributes exposing (attribute, id, style, type_, value)
-import Html.Events exposing (keyCode, on, onInput, targetValue, onFocus)
+import Html.Events exposing (keyCode, on, onFocus, onInput, targetValue)
 import KeyboardLayout exposing (Key, Keyboard)
 import Set exposing (Set)
+import Color exposing (toCssString)
 
 
 type Msg
@@ -14,9 +16,11 @@ type Msg
     | StartPlaying
     | EditLayout
 
+
 type UIMode
     = Playing
     | EditingLayout
+
 
 noteInputStyle key =
     [ style "border-style" "solid"
@@ -44,8 +48,14 @@ charStyle =
     ]
 
 
-keyStyle : Key -> Bool -> List (Attribute msg)
-keyStyle key isActive =
+hsLuvToString : HSLuv -> String
+hsLuvToString color =
+    HSLuv.toColor color
+    |> toCssString
+
+
+keyStyle : Key -> List (Attribute msg)
+keyStyle key =
     [ style "border-style" "solid"
     , style "border-width" "1px"
     , style "border-radius" "5px"
@@ -56,13 +66,7 @@ keyStyle key isActive =
     , style "height" "40px"
     , style "font-family" "monospace"
     , style "box-shadow" "1px 2px #aaa"
-    , style "background-color"
-        (if isActive then
-            "cyan"
-
-         else
-            "peachpuff"
-        )
+    , style "background-color" (hsLuvToString key.color)
     , style "grid-row" (String.fromInt key.row)
     , style "grid-column-start" (String.fromInt key.colStart)
     , style "grid-column-end" (String.fromInt key.colEnd)
@@ -80,13 +84,13 @@ spaceStyle key =
     ]
 
 
-renderKey : Set String -> Key -> Html Msg
-renderKey keysPressed key =
+renderKey : Key -> Html Msg
+renderKey key =
     if key.char == " " then
         div (spaceStyle key) []
 
     else
-        div (keyStyle key <| Set.member key.char keysPressed)
+        div (keyStyle key)
             [ input (noteInputStyle key) []
             , div charStyle [ text key.char ]
             ]
@@ -128,10 +132,10 @@ compareKeys left right =
         EQ
 
 
-renderKeyboard : Keyboard -> Set String -> Html Msg
-renderKeyboard keyboard keysPressed =
+renderKeyboard : Keyboard -> Html Msg
+renderKeyboard keyboard =
     List.sortWith compareKeys keyboard
-        |> List.map (renderKey keysPressed)
+        |> List.map renderKey
         |> div
             [ style "display" "grid"
             , style "justify-content" "start"
