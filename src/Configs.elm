@@ -14,7 +14,7 @@ myNoteCfg =
 
 
 myKeys =
-    "zxcvbasdfgqwert123456nm,.hjkl;yuiop[]7890-="
+    "zxcvbasdfgqwert12345nm,.hjkl;yuiop[]67890-="
 
 
 myKeyboardMapping =
@@ -24,7 +24,7 @@ myKeyboardMapping =
 
 
 myLayout =
-    "123456 7890-=\n qwert yuiop[]\n  asdfg hjkl;\n   zxcvb nm,."
+    "12345 67890-=\n qwert yuiop[]\n  asdfg hjkl;\n   zxcvb nm,."
 
 myKeyboard = { layout = myLayout
                 , mapping = myKeyboardMapping

@@ -11,7 +11,7 @@ type alias Note =
     , freq : Float
     , gain : Float
     , name : String
-    , color : HSLuv
+    , color : (Float, Float, Float)
     }
 
 
@@ -68,9 +68,9 @@ genNoteCfg halfStepsFromA440 =
         name =
             getName halfStepsFromA440
     in
-    let hue = (toFloat (remainderBy 12 (halfStepsFromA440 + 120))) / 12 in
-    let lightness = (toFloat (50 + halfStepsFromA440))/100 in 
+    let hue = (toFloat (remainderBy 12 (halfStepsFromA440 + 120))) * 30 in
+    let lightness = (toFloat (50 + halfStepsFromA440)) in 
 
     ( name
-    , { freq = freq, gain = gain, halfStepsFromA440 = halfStepsFromA440, name = name, color = HSLuv.hsluv { hue = hue, saturation = 1.0, lightness = lightness, alpha = 1 } }
+    , { freq = freq, gain = gain, halfStepsFromA440 = halfStepsFromA440, name = name, color = (hue, 100.0, lightness) }
     )

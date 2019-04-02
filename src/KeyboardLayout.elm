@@ -12,7 +12,7 @@ type alias Key =
     , row : Int
     , colStart : Int
     , colEnd : Int
-    , color : HSLuv
+    , color : (Float, Float, Float)
     }
 
 
@@ -68,13 +68,13 @@ prependToRow km rowNum nextChar current =
             
     in
     let
-        color = if Set.member nextChar km.keysPressed then HSLuv.hsluv { hue = 0, saturation = 0, lightness = 1, alpha = 1 } else 
+        color = if Set.member nextChar km.keysPressed then (0.0, 0.0, 100.0) else 
             case note of
                 Just n ->
                     n.color
 
                 Nothing ->
-                    HSLuv.hsluv { hue = 0, saturation = 0, lightness = 0, alpha = 0 }
+                    (0.0, 0.0, 0.0)
     in
     { char = nextChar, note = getOrBlank km.mapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = color } :: current
 

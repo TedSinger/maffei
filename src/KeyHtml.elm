@@ -48,9 +48,12 @@ charStyle =
     ]
 
 
-hsLuvToString : HSLuv -> String
+hsLuvToString : (Float, Float, Float) -> String
 hsLuvToString color =
-    HSLuv.toColor color
+    
+    let (red, green, blue) = HSLuv.hpluvToRgb color in
+    HSLuv.rgba {red = red, green = green, blue = blue, alpha = 1}
+    |> HSLuv.toColor
     |> toCssString
 
 
