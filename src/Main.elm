@@ -118,6 +118,7 @@ view oldModel =
                         [ value oldModel.keyboard.layout
                         , onInput NewLayout
                         , style "margin-top" "2px"
+                        , style "height" ((String.lines oldModel.keyboard.layout |> List.length  |> toFloat |> (*) 1.2 |> String.fromFloat) ++ "em")
                         ]
                         []
                     , button [ onClick StartPlaying ] [ text "Resume playing" ]
