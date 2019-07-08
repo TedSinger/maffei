@@ -68,8 +68,8 @@ genNoteCfg halfStepsFromA440 =
         name =
             getName halfStepsFromA440
     in
-    let hue = (toFloat (remainderBy 12 (halfStepsFromA440 + 120))) * 30 in
-    let lightness = (toFloat (50 + halfStepsFromA440)) in 
+    let hue = (halfStepsFromA440 + 120 |> remainderBy 12 |> toFloat) * 30 in
+    let lightness = 50 + halfStepsFromA440 |> toFloat in 
 
     ( name
     , { freq = freq, gain = gain, halfStepsFromA440 = halfStepsFromA440, name = name, color = (hue, 100.0, lightness) }
