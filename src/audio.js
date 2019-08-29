@@ -1,3 +1,7 @@
+if((typeof(AudioContext) === "undefined" && typeof(webkitAudioContext) !== "undefined")) {
+    AudioContext = webkitAudioContext;
+}
+
 function makeAudioGraph() {
     ac = new AudioContext();
     channelMerger = ac.createChannelMerger();
