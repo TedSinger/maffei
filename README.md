@@ -2,7 +2,7 @@
 
 ## A piano in the browser with configurable layout
 
-Try it at https://fernmyth.net/piano (Chrome or Firefox)
+Try it at https://fernmyth.net/piano (Chrome, Safari, or Firefox)
 
 ``` shell
 $ elm make src/*.elm --output=main.js
@@ -15,11 +15,10 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 
 - Change the position of keys with the textbox
 - Change the notes played by editing the labels on the keys
-- Perceived-loudness equalization
+- Attempted perceived-loudness equalization
 
 ### Misfeatures
 
-- Does not work in Safari yet
 - Firefox has a ~~bug~~ _different interpretation of the spec_ in its WebAudio API, resulting in an ugly click on each key press/release. See https://bugzilla.mozilla.org/show_bug.cgi?id=1516108
 
 ### Future features?
