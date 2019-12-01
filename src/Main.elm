@@ -2,7 +2,6 @@ module Main exposing (init, main, update, view)
 
 import Browser
 import Configs exposing (myKeyMapping, myLayout, myNoteCfg)
-import Model exposing (Model, UIMode(..))
 import Dict exposing (Dict)
 import Html exposing (Attribute, Html, button, div, input, text, textarea)
 import Html.Attributes exposing (class, id, style, tabindex, value)
@@ -12,6 +11,7 @@ import Json.Encode as E
 import KeyHtml exposing (Msg(..), renderKeyboard)
 import KeyboardLayout exposing (Keyboard, KeyboardModel, keyboardFromModel)
 import KeyboardState exposing (sendActiveNotes, sendNoteConfig)
+import Model exposing (Model, UIMode(..), withKeyChange)
 import Notes exposing (Note, NoteConfig)
 import Set exposing (Set)
 
@@ -30,8 +30,6 @@ subscriptions model =
     Sub.none
 
 
-
-
 init : () -> ( Model, Cmd msg )
 init _ =
     ( { keyLayout = myLayout
@@ -48,7 +46,7 @@ update : Msg -> Model -> ( Model, Cmd msg )
 update msg oldModel =
     case msg of
         NewLayout s ->
-            ( { oldModel | keyLayout =  s }, Cmd.none )
+            ( { oldModel | keyLayout = s }, Cmd.none )
 
         NewNote char s ->
             ( { oldModel | keyMapping = Dict.insert char s oldModel.keyMapping }, Cmd.none )
@@ -56,20 +54,10 @@ update msg oldModel =
         KeyActive active char ->
             if Set.member char oldModel.keysPressed /= active then
                 let
-                    newKeysPressed =
-                        if active then
-                            Set.insert char oldModel.keysPressed
-
-                        else
-                            Set.remove char oldModel.keysPressed
+                    ( newModel, newNotes ) =
+                        withKeyChange oldModel active char
                 in
-                let
-                    newNotesPressed =
-                        translateKeyPresses oldModel.keyMapping oldModel.keyLayout newKeysPressed
-                in
-                ( { oldModel | keysPressed = newKeysPressed }
-                , sendActiveNotes newNotesPressed
-                )
+                ( newModel, sendActiveNotes newNotes )
 
             else
                 ( oldModel, Cmd.none )
@@ -79,13 +67,6 @@ update msg oldModel =
 
         EditLayout ->
             ( { oldModel | uiMode = EditingLayout }, Cmd.none )
-
-
-translateKeyPresses : Dict String String -> String -> Set String -> List String
-translateKeyPresses keyboardMapping layout keys =
-    Set.toList keys
-        |> List.filter (\k -> String.contains k layout)
-        |> List.filterMap (\k -> Dict.get k keyboardMapping)
 
 
 keyDecoder : (String -> Msg) -> Decoder Msg
