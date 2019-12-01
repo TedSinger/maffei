@@ -5,6 +5,7 @@ import HSLuv exposing (HSLuv)
 import Notes exposing (Note, NoteConfig)
 import Set exposing (Set)
 import Maybe exposing (andThen)
+import Model exposing (Model)
 
 type alias Key =
     { char : String
@@ -38,8 +39,8 @@ getOrBlank mapping char =
             ""
 
 
-prependToRow : KeyboardModel -> Int -> String -> Keyboard -> Keyboard
-prependToRow km rowNum nextChar current =
+prependToRow : Model -> Int -> String -> Keyboard -> Keyboard
+prependToRow m rowNum nextChar current =
     let
         key =
             {}
@@ -63,12 +64,12 @@ prependToRow km rowNum nextChar current =
     in
     let
         note =
-            Dict.get nextChar km.mapping
-            |> andThen (\name -> Dict.get name km.noteConfig)
+            Dict.get nextChar m.keyMapping
+            |> andThen (\name -> Dict.get name m.noteConfig)
             
     in
     let
-        color = if Set.member nextChar km.keysPressed then (0.0, 0.0, 100.0) else 
+        color = if Set.member nextChar m.keysPressed then (0.0, 0.0, 100.0) else 
             case note of
                 Just n ->
                     n.color
@@ -76,21 +77,21 @@ prependToRow km rowNum nextChar current =
                 Nothing ->
                     (0.0, 0.0, 0.0)
     in
-    { char = nextChar, note = getOrBlank km.mapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = color } :: current
+    { char = nextChar, note = getOrBlank m.keyMapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = color } :: current
 
 
-stringToRow : KeyboardModel -> Int -> String -> Keyboard
-stringToRow km rowNum chars =
+stringToRow : Model -> Int -> String -> Keyboard
+stringToRow m rowNum chars =
     String.toList chars
         |> List.map String.fromChar
-        |> List.foldl (prependToRow km rowNum) []
+        |> List.foldl (prependToRow m rowNum) []
 
 
-keyboardFromModel : KeyboardModel -> Keyboard
-keyboardFromModel km =
+keyboardFromModel : Model -> Keyboard
+keyboardFromModel m =
     let
         lines =
-            String.lines km.layout
+            String.lines m.keyLayout
     in
-    List.indexedMap (stringToRow km) lines
+    List.indexedMap (stringToRow m) lines
         |> List.concat

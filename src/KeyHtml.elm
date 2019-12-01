@@ -1,4 +1,4 @@
-module KeyHtml exposing (Msg(..), UIMode(..), renderKeyboard)
+module KeyHtml exposing (Msg(..), renderKeyboard)
 
 import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
@@ -16,10 +16,6 @@ type Msg
     | StartPlaying
     | EditLayout
 
-
-type UIMode
-    = Playing
-    | EditingLayout
 
 
 noteInputStyle key =

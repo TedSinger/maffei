@@ -1,4 +1,4 @@
-module Configs exposing (myKeyboard)
+module Configs exposing (myLayout, myKeyMapping, myNoteCfg)
 
 import Dict exposing (Dict)
 import Json.Encode as E
@@ -17,7 +17,7 @@ myKeys =
     "zxcvbasdfgqwert12345nm,.hjkl;yuiop[]67890-="
 
 
-myKeyboardMapping =
+myKeyMapping =
     List.range 0 45
         |> List.map (\i -> ( String.slice i (i + 1) myKeys, getName (i - 14) ))
         |> Dict.fromList
@@ -25,9 +25,3 @@ myKeyboardMapping =
 
 myLayout =
     "12345 67890-=\n qwert yuiop[]\n  asdfg hjkl;\n   zxcvb nm,."
-
-myKeyboard = { layout = myLayout
-                , mapping = myKeyboardMapping
-                , keysPressed = Set.empty
-                , noteConfig = myNoteCfg
-                }
