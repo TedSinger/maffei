@@ -1,4 +1,4 @@
-module KeyboardLayout exposing (Key, Keyboard, KeyboardModel, keyboardFromModel)
+module KeyboardLayout exposing (Key, Keyboard, keyboardFromModel)
 
 import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
@@ -19,14 +19,6 @@ type alias Key =
 
 type alias Keyboard =
     List Key
-
-
-type alias KeyboardModel =
-    { layout : String
-    , mapping : Dict String String
-    , keysPressed : Set String
-    , noteConfig : NoteConfig
-    }
 
 
 getOrBlank : Dict String String -> String -> String

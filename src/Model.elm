@@ -20,10 +20,10 @@ type alias Model =
 
 
 translateKeyPresses : Dict String String -> String -> Set String -> List String
-translateKeyPresses keyboardMapping layout keys =
+translateKeyPresses keyMapping layout keys =
     Set.toList keys
         |> List.filter (\k -> String.contains k layout)
-        |> List.filterMap (\k -> Dict.get k keyboardMapping)
+        |> List.filterMap (\k -> Dict.get k keyMapping)
 
 
 withKeyChange : Model -> Bool -> String -> ( Model, List String )

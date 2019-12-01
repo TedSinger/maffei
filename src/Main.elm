@@ -1,4 +1,4 @@
-module Main exposing (init, main, update, view)
+module Main exposing (init, main, view)
 
 import Browser
 import Configs exposing (myKeyMapping, myLayout, myNoteCfg)
@@ -8,27 +8,22 @@ import Html.Attributes exposing (class, id, style, tabindex, value)
 import Html.Events exposing (on, onBlur, onClick, onFocus, onInput)
 import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
-import KeyHtml exposing (Msg(..), renderKeyboard)
-import KeyboardLayout exposing (Keyboard, KeyboardModel, keyboardFromModel)
+import KeyHtml exposing (renderKeyboard)
+import KeyboardLayout exposing (Keyboard, keyboardFromModel)
 import KeyboardState exposing (sendActiveNotes, sendNoteConfig)
 import Model exposing (Model, UIMode(..), withKeyChange)
 import Notes exposing (Note, NoteConfig)
+import Msg exposing (Msg(..), update)
 import Set exposing (Set)
 
 
 main =
     Browser.element
         { init = init
-        , subscriptions = subscriptions
+        , subscriptions = \m -> Sub.none
         , update = update
         , view = view
         }
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
-
 
 init : () -> ( Model, Cmd msg )
 init _ =
@@ -41,32 +36,6 @@ init _ =
     , sendNoteConfig myNoteCfg
     )
 
-
-update : Msg -> Model -> ( Model, Cmd msg )
-update msg oldModel =
-    case msg of
-        NewLayout s ->
-            ( { oldModel | keyLayout = s }, Cmd.none )
-
-        NewNote char s ->
-            ( { oldModel | keyMapping = Dict.insert char s oldModel.keyMapping }, Cmd.none )
-
-        KeyActive active char ->
-            if Set.member char oldModel.keysPressed /= active then
-                let
-                    ( newModel, newNotes ) =
-                        withKeyChange oldModel active char
-                in
-                ( newModel, sendActiveNotes newNotes )
-
-            else
-                ( oldModel, Cmd.none )
-
-        StartPlaying ->
-            ( { oldModel | uiMode = Playing }, Cmd.none )
-
-        EditLayout ->
-            ( { oldModel | uiMode = EditingLayout }, Cmd.none )
 
 
 keyDecoder : (String -> Msg) -> Decoder Msg

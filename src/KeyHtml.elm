@@ -1,4 +1,4 @@
-module KeyHtml exposing (Msg(..), renderKeyboard)
+module KeyHtml exposing (renderKeyboard)
 
 import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
@@ -7,14 +7,8 @@ import Html.Events exposing (keyCode, on, onFocus, onInput, targetValue)
 import KeyboardLayout exposing (Key, Keyboard)
 import Set exposing (Set)
 import Color exposing (toCssString)
+import Msg exposing (Msg(..))
 
-
-type Msg
-    = NewLayout String
-    | NewNote String String
-    | KeyActive Bool String
-    | StartPlaying
-    | EditLayout
 
 
 
