@@ -1,29 +1,17 @@
 module KeyHtml exposing (renderKeyboard)
 
+import Color exposing (toCssString)
 import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
-import Html.Attributes exposing (attribute, id, style, type_, value)
+import Html.Attributes exposing (attribute, class, id, style, type_, value)
 import Html.Events exposing (keyCode, on, onFocus, onInput, targetValue)
 import KeyboardLayout exposing (Key, Keyboard)
-import Set exposing (Set)
-import Color exposing (toCssString)
 import Msg exposing (Msg(..))
-
-
+import Set exposing (Set)
 
 
 noteInputStyle key =
-    [ style "border-style" "solid"
-    , style "border-width" "1px"
-    , style "border-color" "#aaa"
-    , style "border-radius" "3px"
-    , style "margin" "5%"
-    , style "height" "15px"
-    , style "text-align" "center"
-    , style "width" "90%"
-    , style "-webkit-box-sizing" "border-box"
-    , style "-moz-box-sizing" "border-box"
-    , style "box-sizing" "border-box"
+    [ class "note"
     , type_ "text"
     , value key.note
     , onInput (NewNote key.char)
@@ -31,34 +19,20 @@ noteInputStyle key =
     ]
 
 
-charStyle =
-    [ style "position" "relative"
-    , style "left" "10%"
-    , style "top" "10%"
-    ]
-
-
-hsLuvToString : (Float, Float, Float) -> String
+hsLuvToString : ( Float, Float, Float ) -> String
 hsLuvToString color =
-    
-    let (red, green, blue) = HSLuv.hpluvToRgb color in
-    HSLuv.rgba {red = red, green = green, blue = blue, alpha = 1}
-    |> HSLuv.toColor
-    |> toCssString
+    let
+        ( red, green, blue ) =
+            HSLuv.hpluvToRgb color
+    in
+    HSLuv.rgba { red = red, green = green, blue = blue, alpha = 1 }
+        |> HSLuv.toColor
+        |> toCssString
 
 
 keyStyle : Key -> List (Attribute msg)
 keyStyle key =
-    [ style "border-style" "solid"
-    , style "border-width" "1px"
-    , style "border-radius" "5px"
-    , style "margin-left" "8%"
-    , style "margin-right" "8%"
-    , style "margin-bottom" "1px"
-    , style "margin-top" "2px"
-    , style "height" "40px"
-    , style "font-family" "monospace"
-    , style "box-shadow" "1px 2px #aaa"
+    [ class "key"
     , style "background-color" (hsLuvToString key.color)
     , style "grid-row" (String.fromInt key.row)
     , style "grid-column-start" (String.fromInt key.colStart)
@@ -68,9 +42,7 @@ keyStyle key =
 
 spaceStyle : Key -> List (Attribute msg)
 spaceStyle key =
-    [ style "border-color" "white"
-    , style "color" "white"
-    , style "height" "40px"
+    [ class "space"
     , style "grid-row" (String.fromInt key.row)
     , style "grid-column-start" (String.fromInt key.colStart)
     , style "grid-column-end" (String.fromInt key.colEnd)
@@ -85,7 +57,7 @@ renderKey key =
     else
         div (keyStyle key)
             [ input (noteInputStyle key) []
-            , div charStyle [ text key.char ]
+            , div [ class "char" ] [ text key.char ]
             ]
 
 
