@@ -102,7 +102,6 @@ renderKeyboard keyboard =
     List.sortWith compareKeys keyboard
         |> List.map renderKey
         |> div
-            [ style "display" "grid"
-            , style "justify-content" "start"
+            [ id "keyboard"
             , style "grid-template-columns" (gridTemplateColumns keyboard)
             ]

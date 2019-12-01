@@ -60,8 +60,7 @@ topLevelCallbacks uiMode =
         ]
 
     else
-        [ onFocus StartPlaying
-        ]
+        [ onFocus StartPlaying ]
 
 
 getHeight : String -> String
