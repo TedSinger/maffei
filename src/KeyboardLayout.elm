@@ -34,10 +34,6 @@ getOrBlank mapping char =
 prependToRow : Model -> Int -> String -> Keyboard -> Keyboard
 prependToRow m rowNum nextChar current =
     let
-        key =
-            {}
-    in
-    let
         width =
             if nextChar == " " then
                 1
