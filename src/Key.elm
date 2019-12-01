@@ -2,10 +2,11 @@ module Key exposing (Key, Keyboard, keyboardFromModel)
 
 import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
-import Notes exposing (Note, NoteConfig)
-import Set exposing (Set)
 import Maybe exposing (andThen)
 import Model exposing (Model)
+import Notes exposing (Note, NoteConfig)
+import Set exposing (Set)
+
 
 type alias Key =
     { char : String
@@ -13,7 +14,7 @@ type alias Key =
     , row : Int
     , colStart : Int
     , colEnd : Int
-    , color : (Float, Float, Float)
+    , color : ( Float, Float, Float )
     }
 
 
@@ -31,16 +32,16 @@ getOrBlank mapping char =
             ""
 
 
+width char =
+    if char == " " then
+        1
+
+    else
+        2
+
+
 prependToRow : Model -> Int -> String -> Keyboard -> Keyboard
 prependToRow m rowNum nextChar current =
-    let
-        width =
-            if nextChar == " " then
-                1
-
-            else
-                2
-    in
     let
         start =
             case current of
@@ -53,19 +54,29 @@ prependToRow m rowNum nextChar current =
     let
         note =
             Dict.get nextChar m.keyMapping
-            |> andThen (\name -> Dict.get name m.noteConfig)
-            
+                |> andThen (\name -> Dict.get name m.noteConfig)
     in
     let
-        color = if Set.member nextChar m.keysPressed then (0.0, 0.0, 100.0) else 
-            case note of
-                Just n ->
-                    n.color
+        color =
+            if Set.member nextChar m.keysPressed then
+                ( 0.0, 0.0, 100.0 )
 
-                Nothing ->
-                    (0.0, 0.0, 0.0)
+            else
+                case note of
+                    Just n ->
+                        n.color
+
+                    Nothing ->
+                        ( 0.0, 0.0, 0.0 )
     in
-    { char = nextChar, note = getOrBlank m.keyMapping nextChar, row = rowNum + 1, colStart = start, colEnd = start + width, color = color } :: current
+    { char = nextChar
+    , note = getOrBlank m.keyMapping nextChar
+    , row = rowNum + 1
+    , colStart = start
+    , colEnd = start + width nextChar
+    , color = color
+    }
+        :: current
 
 
 stringToRow : Model -> Int -> String -> Keyboard
@@ -78,5 +89,5 @@ stringToRow m rowNum chars =
 keyboardFromModel : Model -> Keyboard
 keyboardFromModel m =
     String.lines m.keyLayout
-        |> List.indexedMap (stringToRow m) 
+        |> List.indexedMap (stringToRow m)
         |> List.concat
