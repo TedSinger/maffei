@@ -1,4 +1,4 @@
-module KeyboardLayout exposing (Key, Keyboard, keyboardFromModel)
+module Key exposing (Key, Keyboard, keyboardFromModel)
 
 import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
@@ -77,9 +77,6 @@ stringToRow m rowNum chars =
 
 keyboardFromModel : Model -> Keyboard
 keyboardFromModel m =
-    let
-        lines =
-            String.lines m.keyLayout
-    in
-    List.indexedMap (stringToRow m) lines
+    String.lines m.keyLayout
+        |> List.indexedMap (stringToRow m) 
         |> List.concat

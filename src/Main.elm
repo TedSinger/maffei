@@ -9,7 +9,7 @@ import Html.Events exposing (on, onBlur, onClick, onFocus, onInput)
 import Json.Decode exposing (Decoder, field, map, string)
 import Json.Encode as E
 import KeyHtml exposing (renderKeyboard)
-import KeyboardLayout exposing (Keyboard, keyboardFromModel)
+import Key exposing (Keyboard, keyboardFromModel)
 import KeyboardState exposing (sendActiveNotes, sendNoteConfig)
 import Model exposing (Model, UIMode(..), withKeyChange)
 import Msg exposing (Msg(..), update)

@@ -5,7 +5,7 @@ import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
 import Html.Attributes exposing (attribute, class, id, style, type_, value)
 import Html.Events exposing (keyCode, on, onFocus, onInput, targetValue)
-import KeyboardLayout exposing (Key, Keyboard)
+import Key exposing (Key, Keyboard)
 import Msg exposing (Msg(..))
 import Set exposing (Set)
 
