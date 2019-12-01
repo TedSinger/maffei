@@ -46,10 +46,13 @@ init _ =
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg oldModel =
-    let oldKeyboard = oldModel.keyboard in
+    let
+        oldKeyboard =
+            oldModel.keyboard
+    in
     case msg of
         NewLayout s ->
-            ( { oldModel | keyboard = { oldKeyboard | layout = s }}, Cmd.none )
+            ( { oldModel | keyboard = { oldKeyboard | layout = s } }, Cmd.none )
 
         NewNote char s ->
             ( { oldModel | keyboard = { oldKeyboard | mapping = Dict.insert char s oldKeyboard.mapping } }, Cmd.none )
@@ -64,9 +67,12 @@ update msg oldModel =
                         else
                             Set.remove char oldKeyboard.keysPressed
                 in
+                let
+                    newNotesPressed =
+                        translateKeyPresses oldKeyboard.mapping oldKeyboard.layout newKeysPressed
+                in
                 ( { oldModel | keyboard = { oldKeyboard | keysPressed = newKeysPressed } }
-                , translateKeyPresses oldKeyboard.mapping oldKeyboard.layout newKeysPressed
-                    |> sendActiveNotes
+                , sendActiveNotes newNotesPressed
                 )
 
             else
@@ -99,6 +105,29 @@ center elems =
         |> div []
 
 
+topLevelCallbacks : UIMode -> List (Attribute Msg)
+topLevelCallbacks uiMode =
+    let
+        modal =
+            if uiMode == Playing then
+                [ on "keydown" (keyDecoder <| KeyActive True)
+                , on "keyup" (keyDecoder <| KeyActive False)
+                , onBlur EditLayout
+                , style "background-color" "burlywood"
+                ]
+
+            else
+                [ onFocus StartPlaying
+                , style "background-color" "#ddd"
+                ]
+    in
+    modal
+        ++ [ tabindex 0
+           , id "main"
+           , style "height" "100%"
+           ]
+
+
 view : Model -> Html Msg
 view oldModel =
     let
@@ -118,33 +147,14 @@ view oldModel =
                         [ value oldModel.keyboard.layout
                         , onInput NewLayout
                         , style "margin-top" "2px"
-                        , style "height" ((String.lines oldModel.keyboard.layout |> List.length  |> toFloat |> (*) 1.2 |> String.fromFloat) ++ "em")
+                        , style "height" ((String.lines oldModel.keyboard.layout |> List.length |> toFloat |> (*) 1.2 |> String.fromFloat) ++ "em")
                         ]
                         []
                     , button [ onClick StartPlaying ] [ text "Resume playing" ]
                     ]
     in
-    let
-        topLevelCallbacks =
-            if oldModel.uiMode == Playing then
-                [ on "keydown" (keyDecoder <| KeyActive True)
-                , on "keyup" (keyDecoder <| KeyActive False)
-                , onBlur EditLayout
-                , style "background-color" "burlywood"
-                ]
-
-            else
-                [ onFocus StartPlaying
-                , style "background-color" "#ddd"
-                ]
-    in
     div
-        (topLevelCallbacks
-            ++ [ tabindex 0
-               , id "main"
-               , style "height" "100%"
-               ]
-        )
+        (topLevelCallbacks oldModel.uiMode)
         [ renderKeyboard (keyboardFromModel oldModel.keyboard)
         , editArea
         ]
