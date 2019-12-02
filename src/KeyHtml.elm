@@ -5,7 +5,7 @@ import HSLuv exposing (HSLuv)
 import Html exposing (Attribute, Html, div, input, text)
 import Html.Attributes exposing (attribute, class, id, style, type_, value)
 import Html.Events exposing (keyCode, on, onFocus, onInput, targetValue)
-import Key exposing (Key, Keyboard)
+import Key exposing (Key, Keyboard, toKeyboard)
 import Msg exposing (Msg(..))
 import Set exposing (Set)
 
@@ -35,8 +35,6 @@ keyStyle key =
     [ class "key"
     , style "background-color" (hsLuvToString key.color)
     , style "grid-row" (String.fromInt key.row)
-    , style "grid-column-start" (String.fromInt key.colStart)
-    , style "grid-column-end" (String.fromInt key.colEnd)
     ]
 
 
@@ -44,8 +42,6 @@ spaceStyle : Key -> List (Attribute msg)
 spaceStyle key =
     [ class "space"
     , style "grid-row" (String.fromInt key.row)
-    , style "grid-column-start" (String.fromInt key.colStart)
-    , style "grid-column-end" (String.fromInt key.colEnd)
     ]
 
 
@@ -61,11 +57,15 @@ renderKey key =
             ]
 
 
+rowWidth row =
+    List.map .width row |> List.sum
+
+
 gridTemplateColumns : Keyboard -> String
 gridTemplateColumns keyboard =
     let
         maxCol =
-            List.maximum <| List.map .colEnd keyboard
+            List.maximum <| List.map rowWidth keyboard
     in
     case maxCol of
         Just n ->
@@ -74,32 +74,12 @@ gridTemplateColumns keyboard =
         Nothing ->
             ""
 
-
-
--- CSS grid placement assumes that item order is relevant to placement
-
-
-compareKeys : Key -> Key -> Order
-compareKeys left right =
-    if left.row > right.row then
-        GT
-
-    else if left.row < right.row then
-        LT
-
-    else if left.colEnd > right.colEnd then
-        GT
-
-    else if left.colEnd < right.colEnd then
-        LT
-
-    else
-        EQ
-
-
+-- WARNING: If you don't order the html of the keys in the 
+-- intended display order, placing them appropriately in the 
+-- grid becomes super finicky.
 renderKeyboard : Keyboard -> Html Msg
 renderKeyboard keyboard =
-    List.sortWith compareKeys keyboard
+    List.concat keyboard
         |> List.map renderKey
         |> div
             [ id "keyboard"

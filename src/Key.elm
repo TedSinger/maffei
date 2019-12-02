@@ -1,4 +1,4 @@
-module Key exposing (Key, Keyboard, keyboardFromModel)
+module Key exposing (Key, Keyboard, Row, toKeyboard)
 
 import Dict exposing (Dict)
 import HSLuv exposing (HSLuv)
@@ -12,15 +12,16 @@ type alias Key =
     { char : String
     , note : String
     , row : Int
-    , colStart : Int
-    , colEnd : Int
+    , width : Int
     , color : ( Float, Float, Float )
     }
 
 
-type alias Keyboard =
+type alias Row =
     List Key
 
+type alias Keyboard =
+    List Row
 
 getOrBlank : Dict String String -> String -> String
 getOrBlank mapping char =
@@ -40,17 +41,8 @@ width char =
         2
 
 
-prependToRow : Model -> Int -> String -> Keyboard -> Keyboard
-prependToRow m rowNum nextChar current =
-    let
-        start =
-            case current of
-                headKey :: tail ->
-                    headKey.colEnd
-
-                [] ->
-                    1
-    in
+toKey : Model -> Int -> String -> Key
+toKey m rownum nextChar =
     let
         note =
             Dict.get nextChar m.keyMapping
@@ -71,23 +63,20 @@ prependToRow m rowNum nextChar current =
     in
     { char = nextChar
     , note = getOrBlank m.keyMapping nextChar
-    , row = rowNum + 1
-    , colStart = start
-    , colEnd = start + width nextChar
+    , row = rownum + 1
+    , width = width nextChar
     , color = color
     }
-        :: current
 
 
-stringToRow : Model -> Int -> String -> Keyboard
-stringToRow m rowNum chars =
+toRow : Model -> Int -> String -> Row
+toRow m rownum chars =
     String.toList chars
         |> List.map String.fromChar
-        |> List.foldl (prependToRow m rowNum) []
+        |> List.map (toKey m rownum)
 
 
-keyboardFromModel : Model -> Keyboard
-keyboardFromModel m =
+toKeyboard : Model -> List Row
+toKeyboard m =
     String.lines m.keyLayout
-        |> List.indexedMap (stringToRow m)
-        |> List.concat
+        |> List.indexedMap (toRow m)

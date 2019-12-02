@@ -33,12 +33,14 @@ textarea, button {
     height: 40px;
     font-family: monospace;
     box-shadow: 1px 2px #aaa;
+    grid-column: span 2;
 }
 
 .space {
     border-color: white;
     color: white;
     height: 40px;
+    grid-column: span 1;
 }
 
 .centered {
